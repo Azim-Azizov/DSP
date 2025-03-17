@@ -1,0 +1,327 @@
+%%
+%Task1
+clc; clear; close all;
+%%
+%Task1
+clc; clear; close all;
+
+% Define range
+n = -50:50;
+
+% Define cut-off frequencies
+ft_values = [0.1, 0.25, 0.4];
+
+% Plot impulse responses for different cut-off frequencies
+figure;
+hold on;
+for i = 1:length(ft_values)
+    ft = ft_values(i);
+    h = sinc(2 * ft * n); % Ideal low-pass filter impulse response
+   
+    plot(n, h, 'LineWidth', 1.5, 'DisplayName', ['f_t = ', num2str(ft)]);
+end
+
+% Formatting the plot
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Ideal Low-Pass Filter');
+legend;
+grid on;
+hold off;
+
+%%
+%Task2
+clc; clear; close all;
+
+
+fs = 2000;      
+fc = 460;        
+M = 20;          
+N = M + 1;      
+n = 0:M;        
+ft = fc / fs;    
+
+
+h = sinc(2 * ft * (n - M/2));
+
+
+w = ones(size(h)); % Rectangular window
+h_windowed = h .* w;
+
+
+figure;
+stem(n - M/2, h_windowed, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Windowed Low-Pass Filter');
+grid on;
+
+% Compute and plot frequency response
+H = fft(h_windowed, 1024);
+H_mag = abs(H);            
+H_dB = 20 * log10(H_mag);  
+f = linspace(0, fs/2, length(H)/2);
+
+% Plot Frequency Response (Linear Scale)
+figure;
+plot(f, H_mag(1:end/2), 'LineWidth', 1.5);
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+grid on;
+
+% Plot Frequency Response (dB Scale)
+figure;
+plot(f, H_dB(1:end/2), 'LineWidth', 1.5);
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+grid on;
+
+%%
+%Task3
+clc; clear; close all;
+
+
+fs = 2000;      
+fc = 460;      
+M = 20;          
+N = M + 1;      
+n = 0:M;        
+ft = fc / fs;    
+
+h_sinc = sinc(2 * ft * (n - M/2));
+
+w_hamming = hamming(N)';
+
+h_windowed = h_sinc .* w_hamming;
+% Truncated and shifted sinc function
+figure;
+stem(n - M/2, h_sinc, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Truncated and Shifted Sinc Function');
+grid on;
+
+% Hamming Window
+figure;
+stem(n - M/2, w_hamming, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Hamming Window');
+grid on;
+
+% Impulse Response of Hamming-Windowed Low-Pass Filter
+figure;
+stem(n - M/2, h_windowed, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Hamming-Windowed Low-Pass Filter');
+grid on;
+
+
+H_windowed = fft(h_windowed, 1024);
+H_rect = fft(h_sinc, 1024);  % Compare with rectangular window
+H_mag_windowed = abs(H_windowed);
+H_mag_rect = abs(H_rect);
+H_dB_windowed = 20 * log10(H_mag_windowed);
+H_dB_rect = 20 * log10(H_mag_rect);
+f = linspace(0, fs/2, length(H_windowed)/2);
+
+% Frequency Response (Linear Scale)
+figure;
+plot(f, H_mag_rect(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'Rectangular Window');
+hold on;
+plot(f, H_mag_windowed(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Hamming Window');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+legend;
+grid on;
+
+% Frequency Response (dB Scale)
+figure;
+plot(f, H_dB_rect(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'Rectangular Window');
+hold on;
+plot(f, H_dB_windowed(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Hamming Window');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+legend;
+grid on;
+
+%%
+%Task4
+clc; clear; close all;
+fs = 44100;
+fc = 5000;
+M = 28; % Filter order
+N = M + 1;
+ft = fc / fs;
+n = -M/2:M/2;
+h = sinc(2 * ft * n); % Truncated sinc function
+% Different Windows
+w_rect = rectwin(N)';
+w_ham = hamming(N)';
+w_hann = hann(N)';
+w_black = blackman(N)';
+h_rect = h .* w_rect;
+h_ham = h .* w_ham;
+h_hann = h .* w_hann;
+h_black = h .* w_black;
+figure;
+subplot(2,2,1); stem(n, w_rect); title('Rectangular Window');
+subplot(2,2,2); stem(n, w_ham); title('Hamming Window');
+subplot(2,2,3); stem(n, w_hann); title('Hann Window');
+subplot(2,2,4); stem(n, w_black); title('Blackman Window');
+% Frequency Responses
+figure;
+hold on;
+[H_rect, f] = freqz(h_rect, 1, 1024, fs);
+[H_ham, ~] = freqz(h_ham, 1, 1024, fs);
+[H_hann, ~] = freqz(h_hann, 1, 1024, fs);
+[H_black, ~] = freqz(h_black, 1, 1024, fs);
+plot(f, 20*log10(abs(H_rect)), 'r', 'DisplayName', 'Rectangular');
+plot(f, 20*log10(abs(H_ham)), 'g', 'DisplayName', 'Hamming');
+plot(f, 20*log10(abs(H_hann)), 'b', 'DisplayName', 'Hann');
+plot(f, 20*log10(abs(H_black)), 'k', 'DisplayName', 'Blackman');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Comparison of Windowed Low-Pass Filters');
+legend;
+grid on;
+hold off;
+% Plot Frequency Response (Non-dB)
+figure;
+hold on;
+plot(f, abs(H_rect), 'r', 'DisplayName', 'Rectangular');
+plot(f, abs(H_ham), 'g', 'DisplayName', 'Hamming');
+plot(f, abs(H_hann), 'b', 'DisplayName', 'Hann');
+plot(f, abs(H_black), 'k', 'DisplayName', 'Blackman');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Comparison of Windowed Low-Pass Filters (Non-dB)');
+legend;
+grid on;
+hold off;
+
+%%
+%task5
+clc; clear; close all;
+
+
+fs = 2000;    
+fc = 460;      
+M = 20;        
+N = M + 1;      
+n = 0:M;        
+ft = fc / fs;  
+
+
+h_sinc = sinc(2 * ft * (n - M/2));
+
+
+w_hamming = hamming(N)';
+
+
+h_lp = h_sinc .* w_hamming;
+
+
+h_hp = h_lp .* (-1).^n;
+
+% Compute frequency response
+H_lp = fft(h_lp, 1024);
+H_hp = fft(h_hp, 1024);
+
+% Compute magnitude in dB scale
+H_dB_lp = 20 * log10(abs(H_lp));
+H_dB_hp = 20 * log10(abs(H_hp));
+
+% Frequency axis
+f = linspace(0, fs/2, length(H_lp)/2);
+
+% Plot Impulse Responses
+figure;
+subplot(2,1,1);
+stem(n - M/2, h_lp, 'filled', 'LineWidth', 1.5);
+title('Impulse Response of Low-Pass Filter');
+xlabel('n');
+ylabel('Amplitude');
+grid on;
+
+subplot(2,1,2);
+stem(n - M/2, h_hp, 'filled', 'LineWidth', 1.5);
+title('Impulse Response of High-Pass Filter');
+xlabel('n');
+ylabel('Amplitude');
+grid on;
+
+% Plot Frequency Responses (Linear Scale)
+figure;
+plot(f, abs(H_lp(1:end/2)), 'LineWidth', 1.5, 'DisplayName', 'Low-Pass Filter');
+hold on;
+plot(f, abs(H_hp(1:end/2)), '--', 'LineWidth', 1.5, 'DisplayName', 'High-Pass Filter');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+legend;
+grid on;
+hold off;
+
+% Plot Frequency Responses (dB Scale)
+figure;
+plot(f, H_dB_lp(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Low-Pass Filter');
+hold on;
+plot(f, H_dB_hp(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'High-Pass Filter');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+legend;
+grid on;
+hold off;
+
+%%
+%Task6
+clc; clear; close all;
+
+% Filter parameters
+fs = 44100;  % Sampling frequency (Hz)
+M = 51;      % Filter length (must be odd)
+fc1 = 5000;  % Lower cutoff frequency (Hz)
+fc2 = 15000; % Upper cutoff frequency (Hz)
+
+% Normalize frequencies
+f1 = fc1 / fs;
+f2 = fc2 / fs;
+
+% Time index (filter coefficients)
+n = 0:M-1;
+n_mid = (M-1)/2;
+
+% Band-Pass Filter (Ideal Sinc Response)
+h_bp = (sin(2*pi*f2*(n-n_mid)) ./ (pi*(n-n_mid))) - (sin(2*pi*f1*(n-n_mid)) ./ (pi*(n-n_mid)));
+h_bp(n_mid+1) = 2 * (f2 - f1);  % Handle n = M/2 case
+
+% Band-Stop Filter (Ideal Sinc Response)
+h_bs = (sin(2*pi*f1*(n-n_mid)) ./ (pi*(n-n_mid))) - (sin(2*pi*f2*(n-n_mid)) ./ (pi*(n-n_mid)));
+h_bs(n_mid+1) = 1 - 2 * (f2 - f1);  % Handle n = M/2 case
+
+% Apply Hamming Window
+w = hamming(M)';
+
+h_bp = h_bp .* w;
+h_bs = h_bs .* w;
+
+% Plot frequency responses
+figure;
+freqz(h_bp, 1, 1024, fs);
+title('Band-Pass Filter (Hamming)');
+
+figure;
+freqz(h_bs, 1, 1024, fs);
+title('Band-Stop Filter (Hamming)');
+
+
+
+
+

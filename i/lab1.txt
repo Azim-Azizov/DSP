@@ -1,0 +1,64 @@
+fs=1000;
+t=0:1/fs:1-1/fs;
+
+f1=50;
+f2=150;
+x = sin(2*pi*f1*t) + sin(2*pi*f2*t);
+
+noise= 0.5*randn(size(t));
+x_noisy=x+noise;
+
+figure;
+subplot(211);
+plot(t,x_noisy);
+title('Noisy Signal');
+xlabel('Time (seconds)');
+ylabel('Amplitude');
+
+cutoff_freq=100;
+order = 50;
+b=fir1(order,cutoff_freq/(fs/2));
+
+x_filtered=filter(b,1,x_noisy);
+
+%subplot(2,1,2);
+%plot(t, x_filtered);
+%title('Filtered Signal (Low-Pass)');
+%xlabel('Time (seconds)');
+%ylabel('Amplitude');
+
+[b,a]=butter(4,cutoff_freq/(fs/2));
+
+x_filtered_iir=filter(b,a,x_noisy);
+
+subplot(2,1,2);
+plot(t, x_filtered_iir);
+title('Filtered Signal (IIR Low-Pass)');
+xlabel('Time (seconds)');
+ylabel('Amplitude');
+
+figure;
+freqz(b,1,1024,fs);
+title('Frequency Response of the Low-Pass FIR Filter');
+
+% Frequency-domain analysis using FFT
+X_noisy = abs(fft(x_noisy));
+X_filtered = abs(fft(x_filtered));
+X_original = abs(fft(x));
+
+f = (0:length(t)-1) * fs / length(t);  % Frequency vector
+
+figure;
+subplot(2,1,1);
+plot(f, X_noisy);
+title('Magnitude Spectrum of Noisy Signal');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+
+subplot(2,1,2);
+plot(f, X_filtered);
+title('Magnitude Spectrum of Filtered Signal');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+
+

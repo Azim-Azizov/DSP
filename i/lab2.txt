@@ -1,0 +1,73 @@
+fs = 1000; % Sampling frequency
+t = 0:1/fs:1; % Time vector
+x = sin(2*pi*10*t) + 0.5*randn(size(t)); % Sinusoidal signal with noise
+plot(t, x);
+title('Noisy Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+
+N=10;
+h=ones(1,N)/N;
+y1=conv(x,h,'same');
+
+y2=filter(h,1,x);
+
+y3=movmean(x,N);
+
+figure;
+plot(t, x, 'k', 'DisplayName', 'Noisy Signal'); hold on;
+plot(t, y1, 'r', 'DisplayName', 'Filtered (conv)');
+plot(t, y2, 'g', 'DisplayName', 'Filtered (filter)');
+plot(t, y3, 'b', 'DisplayName', 'Filtered (movmean)');
+legend;
+title('Comparison of Moving Average Filtering Methods');
+xlabel('Time (s)');
+ylabel('Amplitude');
+hold off;
+
+%%
+
+clf; clc; clear;
+N=51;
+noise=0.8*(rand(N,1)-0.5);
+m=0:N-1;
+s=2*m.*(0.9.^m);
+x_noisy=s+noise';
+subplot(211);
+plot(m,noise,'r', m,s,'b', m,x_noisy,'g');
+grid on;
+title('Before Filtering');
+xlabel('Time(s)');
+ylabel('Amplitude');
+legend('Noise','Original Signal','Noisy Signal');
+
+y = movmean(x_noisy, 3); % 3-point moving average
+
+subplot(212);
+plot(m, y, 'r', m, x_noisy, 'b');
+grid on;
+title('After Filtering with movmean');
+xlabel('Time(s)');
+ylabel('Amplitude');
+legend('Filtered Signal', 'Noisy Signal');
+
+%%
+
+n=0:100;
+s1= cos(2*pi*0.05*n);
+s2=cos(2*pi*0.47*n);
+x= s1+s2;
+
+M= input('Enter the order of Moving  average filter: ');
+h= ones(1,M)/M;
+y=movmean(x,M);
+clf;
+subplot(221);plot(n,s1);
+axis([0, 100, -2, 2]);  xlabel('Time(s)'); ylabel('Amplitude');grid on; title('Low frequency signal'); 
+subplot(222);plot(n,s2);
+axis([0, 100, -2, 2]);  xlabel('Time(s)'); ylabel('Amplitude');grid on; title('High frequency signal'); 
+subplot(223);plot(n,x);
+axis([0, 100, -2, 2]);  xlabel('Time(s)'); ylabel('Amplitude');grid on; title('Input signal'); 
+subplot(224);plot(n,y);
+axis([0, 100, -2, 2]);  xlabel('Time(s)'); ylabel('Amplitude');grid on; title('Output signal'); 
+axis;

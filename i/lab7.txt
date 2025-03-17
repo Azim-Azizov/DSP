@@ -1,0 +1,93 @@
+clc;clear;close all;
+Wp=[0.2 0.4];
+
+[b,a]=cheby1(2,0.3,Wp,'bandpass');
+
+[h,t]=impz(b,a,1024);
+[G,f]=freqz(b,a,512);
+
+figure;
+subplot(311); plot(t, h); title("Impulse response of the filter"); grid on;
+subplot(312); plot(f, abs(G)); title("Frequency response of the filter (non-dB)"); grid on;
+subplot(313); plot((0 : 511) / 1024, abs(10*log10(G(1 : 512)))); title("Frequency response of the filter (dB)"); grid on;
+
+%Applying filter to an input signal
+fs = 1000;
+t2 = 0:1/fs:1;
+f1 = 15; f2 =460; f3 = 220; f4 = 250;
+x = sin(2*pi*f1*t2) + sin(2*pi*f2*t2) + sin(2*pi*f3*t2) + 2*sin(2*pi*f4*t2);
+
+y  = filter(b, a, x);
+
+figure;
+subplot(221); plot(t2, x); title("Input signal"); grid on;
+subplot(222); plot(t2,y); title("Filtered input signal"); grid on;
+
+X_freq = fft(x, 512);
+Y_freq = fft(y, 512);
+
+subplot(223); plot((1: 512), abs(X_freq(1 : 512))); title("Spectrum before filtering"); grid on;
+subplot(224); plot((1: 512), abs(Y_freq(1 : 512))); title("Spectrum after filtering"); grid on;
+
+%%
+
+clc;clear;close all;
+n1=4;
+n2=20;
+r=0.5;
+fc=0.25;
+f=(0:511)/1024;
+Fs=0:0.01:1;
+x=0:0.01:1;
+w=Fs/fc;
+T4=chebyshevT(n1, x);
+T20=chebyshevT(n2, x);
+figure(1);
+plot(x,T4,'g', x, T20, 'r'); grid on;
+legend('T(4)', 'T(20)');
+T4m=chebyshevT(n1,w);
+T20m=chebyshevT(n2,w);
+G4=1./sqrt(1+r.^2.*T4m.^2);
+G20=1./sqrt(1+r.^2.*T20m.^2);
+figure(2);
+plot(w, G4, 'g', w, G20, 'r'); grid on; title('Frequency response (non dB)');
+legend('T(4)', 'T(20)');
+figure(3);
+plot(w, 10*log10(G4), 'g', w, 10*log10(G20), 'r'); grid on; title('Frequency response (dB)');
+legend('T(4)', 'T(20)');
+%noisy signal
+t=0:0.001:1;
+s=sin(2*pi*25*t)+0.7*sin(2*pi*220*t);
+figure(4);
+subplot(211);plot(s(1:100)); grid on; title('Noisy signal');
+s_out4=conv(T4,s);
+s_out20=conv(T20,s);
+subplot(212); plot(t(1:100), s_out4(1:100), 'b', t(1:100), s_out20(1:100), 'r'); grid on;
+
+%%
+
+clc;clear;close all;
+n=6; r=0.5; fc=0.3;
+a0=4.18e-3;
+a1=-2.51e-02;
+a2=6.28e-02;
+a3=-8.37e-02;
+a4=6.28e-02;
+a5=-2.51e-02;
+a6=4.18e-03;
+b1=-2.31e+00;
+b2=-3.29;
+b3=-2.9;
+b4=-1.69;
+b5=-6.02e-01;
+b6=-1.03e-01;
+a=[a0,a1,a2,a3,a4,a5,a6];
+b=[b1, b2, b3, b4, b5, b6];
+fvtool(a,b);
+t=0:0.001:10;
+f1=220; f2=150; f3=420;
+s=sin(2*pi*f1*t)+0.7*sin(2*pi*f2*t)+0.3*sin(2*pi*f3*t); %noisy signal
+s_out=filter(a,b,s); %after filtering
+S=fft(s, 512);
+S_out=fft(s_out,512);
+subplot(211); plot(t(1:100),s(1:100),'b',t(1:100),s_out(1:100),'r'); grid on; legend('s(t)', 's_out(t)');
