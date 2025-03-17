@@ -1,0 +1,1198 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
+%Lab1
+clc;
+clear;
+
+%You will start by creating a simple signal that you can filter. This could be a combination of sinusoidal signals with added noise. Here's how to generate a simple noisy signal:
+fs=1000;
+t=0:1/fs:1-1/fs;
+f1=50;
+f2=150;
+x=sin(2*pi*f1*t)+sin(2*pi*f2*t);
+noise=0.5*randn(size(t));
+x_noisy=x+noise;
+
+figure;
+subplot(311);
+plot(t,x);
+title('Original signal'); grid on
+xlabel('Time (seconds)');
+ylabel('Amplitude');
+subplot(312);
+plot(t,x_noisy);
+title('Noisy signal'); grid on
+xlabel('Time (seconds)');
+ylabel('Amplitude');
+% DEsign filter 
+%Now, we will design a simple low-pass filter to remove the higher frequency component (150 Hz) from the noisy signal.
+%Using FIR Filter Design:
+%You can use the FIR filter design function in MATLAB, such as fir1, which designs an FIR filter based on the specified cutoff frequency and filter order
+
+cutoff_freq=170;
+order=50;
+b=fir1(order, cutoff_freq/(fs/2));
+x_filtered=filter(b, 1, x_noisy);
+subplot(313);
+plot(t,x_filtered);
+title('Filtered signal'); grid on
+xlabel('Time (seconds)');
+ylabel('Amplitude');
+
+
+%Using IIR Filter Design:
+%Alternatively, you can design an IIR low-pass filter using the butter function, which is based on the Butterworth filter design.
+
+[b,a]=butter(4, cutoff_freq/(fs/2));
+x_filtered_iir=filter(b,a, x_noisy);
+subplot(313);
+plot(t,x_filtered_iir);
+title('Filtered signal IIR'); grid on
+xlabel('Time (seconds)');
+ylabel('Amplitude')
+
+%frequency domain
+figure;
+freqz(b, 1, 1024, fs);
+title('Frequency response for low-pass filter')
+X_noisy=abs(fft(x_noisy));
+X_original=abs(fft(x));
+X_filtered=abs(fft(x_filtered));
+N=length(t);
+f=(0:N-1)*fs/N;
+figure;
+subplot(311);
+plot(f, X_noisy);
+title('Magnitude of noisy signal')
+xlabel('Frequency (Hz)');
+ylabel('Magnitude')
+
+subplot(312);
+plot(f, X_original);
+title('Magnitude of original signal')
+xlabel('Frequency (Hz)');
+ylabel('Magnitude')
+
+subplot(313);
+plot(f, X_filtered);
+title('Magnitude of filtered signal')
+xlabel('Frequency (Hz)');
+ylabel('Magnitude')
+
+%Experimenting with a High-Pass Filter
+%You can experiment with different types of filters (e.g., high-pass, band-pass, band-stop) and analyze how they affect the signal. For example, to design a high-pass filter
+cutoff_freq = 100;
+order = 50;
+
+b_hp = fir1(order, cutoff_freq/(fs/2), 'high');
+
+x_hp_filtered = filter(b_hp, 1, x_noisy);
+
+figure
+subplot(4, 1, 1); plot(t, x);  grid on; title("Original Signal"); xlabel("time(seconds)"); ylabel("Amplitude")
+subplot(4, 1, 2); plot(t, x_noisy);  grid on; title("Noisy Signal"); xlabel("time(seconds)"); ylabel("Amplitude")
+subplot(4, 1, 3); plot(t, x_hp_filtered);  grid on; title("High-Pass Filtered Signal"); xlabel("time(seconds)"); ylabel("Amplitude")
+
+%IIR Filter
+[b_hp, a_hp] = butter(4, cutoff_freq / (fs/2), "high");
+x_hp_filtered_iir = filter(b_hp, a_hp, x_noisy);
+
+subplot(4, 1, 4); plot(t, x_hp_filtered_iir);  grid on; title("High-Pass Filtered Signal IIR"); xlabel("time(seconds)"); ylabel("Amplitude")
+
+%Frequency Domain
+figure;
+freqz(b_hp, 1, 1024, fs);
+title("Frequency response of the high-pass FIR filter");
+
+X_noisy = abs(fft(x_noisy));
+X_original = abs(fft(x));
+N = length(t);
+f = (0: N - 1) * fs / N;
+
+X_hp_filtered = abs(fft(x_hp_filtered));
+X_hp_filtered_IIR = abs(fft(x_hp_filtered_iir));
+
+figure;
+subplot(4, 1, 1); plot(f, X_noisy); title("Magnitude of noisy signal"); xlabel("Frequency Hz"); ylabel("Magnitude")
+
+
+subplot(4, 1, 2); plot(f, X_original); title("Magnitude of original signal"); xlabel("Frequency Hz"); ylabel("Magnitude")
+
+
+subplot(4, 1, 3); plot(f, X_hp_filtered); title("Magnitude of filtered signal"); xlabel("Frequency Hz"); ylabel("Magnitude")
+
+subplot(4, 1, 4); plot(f, X_hp_filtered_IIR); title("Magnitude of filtered signal IIR"); xlabel("Frequency Hz"); ylabel("Magnitude")
+
+%%
+%Lab2
+clc;
+% 1.1 Generating a Sinusoidal Signal
+fs = 1000; % Sampling frequency (Hz)
+t = 0:1/fs:1; % Time vector (1 second duration)
+f = 5; % Signal frequency in Hz
+x = sin(2*pi*f*t); % Sinusoidal signal
+
+figure;
+plot(t, x);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Sinusoidal Signal');
+grid on;
+
+% 1.2 Generating a Square Wave
+sq_wave = square(2 * pi * f * t);
+
+figure;
+plot(t, sq_wave);
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Square Wave Signal');
+grid on;
+
+% 2. Sampling and Aliasing
+f_signal = 10; % Signal frequency
+fs_low = 15; % Low sampling rate (below Nyquist rate)
+fs_high = 150; % High sampling rate
+
+t_low = 0:1/fs_low:1;
+t_high = 0:1/fs_high:1;
+
+x_low = sin(2*pi*f_signal*t_low);
+x_high = sin(2*pi*f_signal*t_high);
+
+figure;
+subplot(2,1,1);
+stem(t_low, x_low, 'r'); hold on;
+plot(t_high, x_high, 'b');
+xlabel('Time (s)'); ylabel('Amplitude');
+title('Aliasing Effect (Red: Low Sampling, Blue: Original Signal)');
+legend('Low Sampling', 'High Sampling');
+grid on;
+
+% Checking aliasing using square wave
+sq_low = square(2 * pi * f_signal * t_low);
+sq_high = square(2 * pi * f_signal * t_high);
+
+
+subplot(2,1,2);
+stem(t_low, sq_low, 'r'); hold on;
+plot(t_high, sq_high, 'b');
+xlabel('Time (s)'); ylabel('Amplitude');
+title('Aliasing Effect with Square Wave (Red: Low Sampling, Blue: Original Signal)');
+legend('Low Sampling', 'High Sampling');
+grid on;
+
+% 3. Fourier Transform and Frequency Analysis
+N = length(x);
+X = fft(x);
+f_axis = linspace(-fs/2, fs/2, N);
+
+figure;
+plot(f_axis, abs(fftshift(X)));
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Spectrum of the Signal');
+grid on;
+
+
+
+
+%%
+%Lab3
+%Task1
+%Plot impulse responses for ideal low-pass filter for different values of cut-off frequences ??=0.1; 0.25;0.4 using the same window. Range for ? is [?50,50].
+clc; clear; close all;
+
+% Define range
+n = -50:50;
+
+% Define cut-off frequencies
+ft_values = [0.1, 0.25, 0.4];
+
+% Plot impulse responses for different cut-off frequencies
+figure;
+hold on;
+for i = 1:length(ft_values)
+    ft = ft_values(i);
+    h = sinc(2 * ft * n); % Ideal low-pass filter impulse response
+    
+    plot(n, h, 'LineWidth', 1.5, 'DisplayName', ['f_t = ', num2str(ft)]);
+end
+
+% Formatting the plot
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Ideal Low-Pass Filter');
+legend;
+grid on;
+hold off;
+
+%%
+%Task2
+%Consider the filter with the properties given below. ? Filter Type: Low Pass ? Sampling Frequency: 2000 Hz ? Cut off Frequency: 460 Hz ? Filter Length (# samples): 21 (M=20)
+%- Using parameters given above calculate samples and plot low-pass filter impulse response (truncated and shifted sinc-function). Use the following equation:
+%Plot the frequency response for the filter (non-dB and dB
+clc; clear; close all;
+
+
+fs = 2000;       
+fc = 460;        
+M = 20;          
+N = M + 1;       
+n = 0:M;         
+ft = fc / fs;    
+
+
+h = sinc(2 * ft * (n - M/2));
+
+
+w = ones(size(h)); % Rectangular window
+h_windowed = h .* w;
+
+
+figure;
+stem(n - M/2, h_windowed, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Windowed Low-Pass Filter');
+grid on;
+
+% Compute and plot frequency response
+H = fft(h_windowed, 1024); 
+H_mag = abs(H);            
+H_dB = 20 * log10(H_mag);  
+f = linspace(0, fs/2, length(H)/2); 
+
+% Plot Frequency Response (Linear Scale)
+figure;
+plot(f, H_mag(1:end/2), 'LineWidth', 1.5);
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+grid on;
+
+% Plot Frequency Response (dB Scale)
+figure;
+plot(f, H_dB(1:end/2), 'LineWidth', 1.5);
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+grid on;
+
+%%
+%Task3
+%Plot 3 graphs shown on the right: truncated and shifted sinc-function, Hamming window and impulse characteristic of its product (low-pass filter impulse response);
+%Plot frequency response of Hamming windowed sinc-function and Rectangular frequency response (non-dB and dB plot).
+clc; clear; close all;
+
+
+fs = 2000;       
+fc = 460;       
+M = 20;          
+N = M + 1;       
+n = 0:M;         
+ft = fc / fs;    
+
+h_sinc = sinc(2 * ft * (n - M/2));
+
+w_hamming = hamming(N)'; 
+
+h_windowed = h_sinc .* w_hamming;
+% Truncated and shifted sinc function
+figure;
+stem(n - M/2, h_sinc, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Truncated and Shifted Sinc Function');
+grid on;
+
+% Hamming Window
+figure;
+stem(n - M/2, w_hamming, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Hamming Window');
+grid on;
+
+% Impulse Response of Hamming-Windowed Low-Pass Filter
+figure;
+stem(n - M/2, h_windowed, 'filled', 'LineWidth', 1.5);
+xlabel('n');
+ylabel('Amplitude');
+title('Impulse Response of Hamming-Windowed Low-Pass Filter');
+grid on;
+
+
+H_windowed = fft(h_windowed, 1024);
+H_rect = fft(h_sinc, 1024);  % Compare with rectangular window
+H_mag_windowed = abs(H_windowed);
+H_mag_rect = abs(H_rect);
+H_dB_windowed = 20 * log10(H_mag_windowed);
+H_dB_rect = 20 * log10(H_mag_rect);
+f = linspace(0, fs/2, length(H_windowed)/2);
+
+% Frequency Response (Linear Scale)
+figure;
+plot(f, H_mag_rect(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'Rectangular Window');
+hold on;
+plot(f, H_mag_windowed(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Hamming Window');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+legend;
+grid on;
+
+% Frequency Response (dB Scale)
+figure;
+plot(f, H_dB_rect(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'Rectangular Window');
+hold on;
+plot(f, H_dB_windowed(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Hamming Window');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+legend;
+grid on;
+
+%%
+%Task4
+%Compare frequency responses (dB plot) and weight values for different types of window low-pass filters shown above in the table.
+clc; clear; close all;
+fs = 44100;
+fc = 5000;
+M = 28; % Filter order
+N = M + 1;
+ft = fc / fs;
+n = -M/2:M/2;
+h = sinc(2 * ft * n); % Truncated sinc function
+% Different Windows
+w_rect = rectwin(N)';
+w_ham = hamming(N)';
+w_hann = hann(N)';
+w_black = blackman(N)';
+h_rect = h .* w_rect;
+h_ham = h .* w_ham;
+h_hann = h .* w_hann;
+h_black = h .* w_black;
+figure;
+subplot(2,2,1); stem(n, w_rect); title('Rectangular Window');
+subplot(2,2,2); stem(n, w_ham); title('Hamming Window');
+subplot(2,2,3); stem(n, w_hann); title('Hann Window');
+subplot(2,2,4); stem(n, w_black); title('Blackman Window');
+% Frequency Responses
+figure;
+hold on;
+[H_rect, f] = freqz(h_rect, 1, 1024, fs);
+[H_ham, ~] = freqz(h_ham, 1, 1024, fs);
+[H_hann, ~] = freqz(h_hann, 1, 1024, fs);
+[H_black, ~] = freqz(h_black, 1, 1024, fs);
+plot(f, 20*log10(abs(H_rect)), 'r', 'DisplayName', 'Rectangular');
+plot(f, 20*log10(abs(H_ham)), 'g', 'DisplayName', 'Hamming');
+plot(f, 20*log10(abs(H_hann)), 'b', 'DisplayName', 'Hann');
+plot(f, 20*log10(abs(H_black)), 'k', 'DisplayName', 'Blackman');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Comparison of Windowed Low-Pass Filters');
+legend;
+grid on;
+hold off;
+% Plot Frequency Response (Non-dB)
+figure;
+hold on;
+plot(f, abs(H_rect), 'r', 'DisplayName', 'Rectangular');
+plot(f, abs(H_ham), 'g', 'DisplayName', 'Hamming');
+plot(f, abs(H_hann), 'b', 'DisplayName', 'Hann');
+plot(f, abs(H_black), 'k', 'DisplayName', 'Blackman');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Comparison of Windowed Low-Pass Filters (Non-dB)');
+legend;
+grid on;
+hold off;
+
+%%
+%task5
+%Design a High-pass filter kernel using Hamming window on base of low-pass filter. Plot frequency responses of both high- and low-pass filters. Cut-off frequency of high-pass filter is equal to low-pass filter cut-off frequency.
+clc; clear; close all;
+
+
+fs = 2000;    
+fc = 460;       
+M = 20;         
+N = M + 1;      
+n = 0:M;        
+ft = fc / fs;   
+
+
+h_sinc = sinc(2 * ft * (n - M/2));
+
+
+w_hamming = hamming(N)';
+
+
+h_lp = h_sinc .* w_hamming;
+
+
+h_hp = h_lp .* (-1).^n;
+
+% Compute frequency response
+H_lp = fft(h_lp, 1024);
+H_hp = fft(h_hp, 1024);
+
+% Compute magnitude in dB scale
+H_dB_lp = 20 * log10(abs(H_lp));
+H_dB_hp = 20 * log10(abs(H_hp));
+
+% Frequency axis
+f = linspace(0, fs/2, length(H_lp)/2);
+
+% Plot Impulse Responses
+figure;
+subplot(2,1,1);
+stem(n - M/2, h_lp, 'filled', 'LineWidth', 1.5);
+title('Impulse Response of Low-Pass Filter');
+xlabel('n');
+ylabel('Amplitude');
+grid on;
+
+subplot(2,1,2);
+stem(n - M/2, h_hp, 'filled', 'LineWidth', 1.5);
+title('Impulse Response of High-Pass Filter');
+xlabel('n');
+ylabel('Amplitude');
+grid on;
+
+% Plot Frequency Responses (Linear Scale)
+figure;
+plot(f, abs(H_lp(1:end/2)), 'LineWidth', 1.5, 'DisplayName', 'Low-Pass Filter');
+hold on;
+plot(f, abs(H_hp(1:end/2)), '--', 'LineWidth', 1.5, 'DisplayName', 'High-Pass Filter');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+title('Frequency Response (Linear Scale)');
+legend;
+grid on;
+hold off;
+
+% Plot Frequency Responses (dB Scale)
+figure;
+plot(f, H_dB_lp(1:end/2), 'LineWidth', 1.5, 'DisplayName', 'Low-Pass Filter');
+hold on;
+plot(f, H_dB_hp(1:end/2), '--', 'LineWidth', 1.5, 'DisplayName', 'High-Pass Filter');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude (dB)');
+title('Frequency Response (dB Scale)');
+legend;
+grid on;
+hold off;
+
+%%
+%Task6
+%Design the band-stop and band-pass filters in a similar way. The equations for calculating the weights are shown below. For both band pass and band stop, the filter order needs to be even (an odd filter length). Once again, windows are applied across the weights as before.
+clc; clear; close all;
+
+
+% Parameters
+Fs = 44100;      % Sampling frequency (Hz)
+F1 = 5000;       % Lower cut-off frequency (Hz)
+F2 = 15000;      % Upper cut-off frequency (Hz)
+M = 101;         % Filter length (odd number)
+
+% Normalize frequencies
+f1 = F1/Fs;
+f2 = F2/Fs;
+
+% Time index
+n = 1:M;
+n_shifted = n - (M+1)/2;  % Shift index to center
+
+% Initialize arrays
+wbp = zeros(1,M);
+wbs = zeros(1,M);
+
+% Calculate filter coefficients
+for i = 1:M
+    if n_shifted(i) == 0  % Center point
+        wbp(i) = 2*(f2 - f1);
+        wbs(i) = 1 - 2*(f2 - f1);
+    else
+        % Band-pass filter
+        wbp(i) = (sin(2*pi*f2*n_shifted(i)) - sin(2*pi*f1*n_shifted(i)))/(pi*n_shifted(i));
+       
+        % Band-stop filter
+        wbs(i) = (sin(2*pi*f1*n_shifted(i)) - sin(2*pi*f2*n_shifted(i)))/(pi*n_shifted(i));
+    end
+end
+
+% Apply Hamming window
+win = hamming(M)';
+wbp = wbp .* win;
+wbs = wbs .* win;
+
+% Calculate frequency response
+[h_bp, f] = freqz(wbp, 1, 1024, Fs);
+[h_bs, f] = freqz(wbs, 1, 1024, Fs);
+
+% Plot impulse responses
+figure;
+subplot(2,1,1);
+stem(n, wbp, 'b', 'LineWidth', 1.5);
+title('Band-Pass Filter Impulse Response (Hamming)');
+xlabel('Samples'); ylabel('Amplitude');
+grid on;
+
+subplot(2,1,2);
+stem(n, wbs, 'r', 'LineWidth', 1.5);
+title('Band-Stop Filter Impulse Response (Hamming)');
+xlabel('Samples'); ylabel('Amplitude');
+grid on;
+
+% Plot frequency responses
+figure;
+subplot(2,1,1);
+plot(f, abs(h_bp), 'g', 'LineWidth', 1.5); hold on;
+plot(f, abs(h_bs), 'r', 'LineWidth', 1.5);
+title('Frequency Response (Linear Scale)');
+xlabel('Frequency (Hz)'); ylabel('Magnitude');
+legend('Band-Pass Hamming', 'Band-Stop Hamming');
+grid on; xlim([0 Fs/2]);
+
+subplot(2,1,2);
+plot(f, 20*log10(abs(h_bp)), 'g', 'LineWidth', 1.5); hold on;
+plot(f, 20*log10(abs(h_bs)), 'r', 'LineWidth', 1.5);
+title('Frequency Response (dB Scale)');
+xlabel('Frequency (Hz)'); ylabel('Magnitude (dB)');
+legend('Band-Pass Hamming', 'Band-Stop Hamming');
+grid on; xlim([0 Fs/2]); ylim([-120 10]);
+
+
+%%
+%Lab4
+%Define kernel of the filter for the frequency response shown above.
+%-Take the Inverse FFT to move the filter into the time domain. This results in a 1024 sample signal running from 0 to 1023. This impulse response corresponds to the frequency response but not suitable for use as a filter kernel.
+%truncate, and windowed filter kernel. Design the filter kernel with M=40, i.e., 41 points running from sample 0 to sample 40. Plot obtained result.
+% Test the filter kernel. Take the DFT (using the FFT) to find the actual frequency response and plot it.
+% Repeat this procedure for filter kernel with M=100, 300 and 1000 points.
+clc;
+clear;
+x1 = 0:127;
+x1 = x1/1024;
+y1 = -16*x1 + 3;
+y2 = zeros(1, 129);
+y3 = ones(1, 128);
+t = 0:127;
+y4 = sin(2*pi*0.017*t) + 1;
+F = [y1, y2, y3, y4];
+
+
+figure;
+plot(0:length(F)-1, F);
+title('Desired Frequency Response');
+xlabel('Frequency Sample Index');
+ylabel('Magnitude');
+grid on;
+
+F_full = [F, fliplr(F(2:end))];
+impulse_response = ifft(F_full, 'symmetric');
+
+
+figure;
+plot(0:length(impulse_response)-1, real(impulse_response));
+title('Impulse Response (Time Domain)');
+xlabel('Sample');
+ylabel('Amplitude');
+grid on;
+
+f = ifft(F, 1024);
+
+M_values = [40, 100, 300, 1000];
+
+
+figure('Name', 'Filter Kernels');
+for i = 1:length(M_values)
+    M = M_values(i);
+    subplot(2, 2, i);
+    
+
+    ft = zeros(1, M/2);
+    for j = 0:M/2-1
+        ft(M/2-j) = f(1024-j);
+    end
+    ft = [ft(1:M/2), f(1:M/2), zeros(1, 1024-M)];
+    
+
+    hamming_window = hamming(M)';
+    windowed_ft = ft(1:M) .* hamming_window;
+    
+
+    stem(1:M, abs(windowed_ft));
+    title(['Filter Kernel (M=', num2str(M), ')']);
+    xlabel('Sample');
+    ylabel('Amplitude');
+    grid on;
+    
+
+    all_windowed_ft{i} = windowed_ft;
+end
+
+
+figure('Name', 'Frequency Responses');
+N_fft = 1024;
+
+for i = 1:length(M_values)
+    M = M_values(i);
+    windowed_ft = all_windowed_ft{i};
+    
+    freq_response = fft(windowed_ft, N_fft);
+    freq_response = abs(freq_response(1:N_fft/2+1));
+    
+    subplot(2, 2, i);
+    plot(0:N_fft/2, freq_response);
+    title(['Frequency Response (M=', num2str(M), ')']);
+    xlabel('Frequency Sample Index');
+    ylabel('Magnitude');
+    grid on;
+    
+  
+    all_freq_responses{i} = freq_response;
+end
+
+figure('Name', 'Comparison of Filter Responses');
+hold on;
+
+for i = 1:length(M_values)
+    freq_response = all_freq_responses{i};
+    plot(0:N_fft/2, freq_response/max(freq_response), 'LineWidth', 1.5);
+end
+
+plot(0:length(F)-1, F/max(F), 'k--', 'LineWidth', 1.5);
+title('Comparison of Filter Responses (Normalized)');
+xlabel('Frequency Sample Index');
+ylabel('Magnitude');
+legend('M=40', 'M=100', 'M=300', 'M=1000', 'Desired');
+grid on;
+
+%%
+%lAB5
+% Demonstration of Gaussian convolution and deconvolution.
+% Requires Gaussian, fastsmooth functions
+% Create a rectangular function y, 400 points wide
+increment = .01;
+cw = 2; 
+dw = 2.01; 
+SmoothWidth = 4; 
+
+
+x = 0:increment:20;
+y = zeros(size(x));
+y(900:1300) = 1.3;
+
+y = y + .01.*randn(size(y)); 
+
+
+c = gaussian(x,0,cw) + gaussian(x,max(x),cw); 
+c2 = gaussian(x,0,dw) + gaussian(x,max(x),dw); 
+
+
+yc = ifft(fft(y).*fft(c))./sum(c);
+
+
+yc = yc + .00000001.*randn(size(yc));
+
+
+ydc = ifft(fft(yc)./fft(c2)).*sum(c2);
+
+subplot(2,2,1); plot(x,y); title('original y');
+subplot(2,2,2); plot(x,yc(1:2001)); title(['yc=y convoluted with c. Width = ' num2str(cw) ]);
+subplot(2,2,3); plot(x,ydc);title(['ydc=recovered y. Width = ' num2str(dw) ]);
+subplot(2,2,4); plot(x,fastsmooth(ydc,SmoothWidth,3));title('smoothed recovered y');
+
+
+function g = gaussian(x, center, width)
+
+    g = exp(-((x-center).^2)./(2*width^2));
+end
+
+function SmoothY = fastsmooth(Y, w, type, ends)
+
+    if nargin==2, ends=0; type=1; end
+    if nargin==3, ends=0; end
+    switch type
+        case 1
+            SmoothY = sa(Y,w,ends);
+        case 2
+            SmoothY = sa(sa(Y,w,ends),w,ends);
+        case 3
+            SmoothY = sa(sa(sa(Y,w,ends),w,ends),w,ends);
+    end
+end
+
+function SmoothY = sa(Y,smoothwidth,ends)
+    w = round(smoothwidth);
+    SumPoints = sum(Y(1:w));
+    s = zeros(size(Y));
+    halfw = round(w/2);
+    L = length(Y);
+    for k=1:L-w
+        s(k+halfw-1) = SumPoints;
+        SumPoints = SumPoints - Y(k);
+        SumPoints = SumPoints + Y(k+w);
+    end
+    s(k+halfw) = sum(Y(L-w+1:L));
+    SmoothY = s./w;
+
+    if ends==1
+        startpoint = (smoothwidth + 1)/2;
+        SmoothY(1) = Y(1);
+        for k=2:startpoint
+            SmoothY(k) = mean(Y(1:2*k-1));
+            SmoothY(L-k+1) = mean(Y(L-2*k+2:L));
+        end
+        SmoothY(L) = Y(L);
+    end
+end
+
+%%
+%Lab6
+% Task 1: First-Order IIR Low-Pass Filter
+%Design and implement a first order IIR filter with a cutoff frequency of 20Hz. Determine the filter coefficients ?? and ?? for this frequency response. Assume a sampling frequency of 750 Hz.
+%2. Design and implement a second order IIR filter with a cutoff frequency of 20 Hz. Determine the filter coefficients ?? and ?? for this frequency response. Assume a sampling frequency of 750 Hz. Both filters are low pass filters.
+%3. Define impulse and frequency responses of the filters. Compare them.
+%4. Apply low-pass IIR filters to your data for eliminating the noise from a given measurement signal. Use 20Hz sine wave with an amplitude of 1V witch consist of strong high frequency noise (>20 Hz).
+%5. What is difference between the filtered and unfiltered signal?
+%6. Vary the frequency of sine wave and apply low-pass filter again. Compare the results.
+%7. Make some conclusions.
+fs = 750; 
+fc = 20;  
+Wc = 2*pi*fc/fs;
+
+
+x = exp(-Wc);
+a0 = 1 - x;
+b1 = x;
+
+
+delta = [1, zeros(1, 1023)];
+y = zeros(1, length(delta)); 
+
+
+y(1) = a0 * delta(1); 
+for i = 2:length(delta)
+    y(i) = a0 * delta(i) + b1 * y(i-1);
+end
+
+
+H1 = fft(y); 
+
+
+subplot(321);
+plot((1:100), y(1:100)); grid on;
+title('First-Order IIR Low-Pass Filter Impulse Response');
+
+subplot(322);
+plot((0:511)/512, abs(H1(1:512))); grid on;
+title('First-Order IIR Low-Pass Filter Frequency Response');
+
+
+z(1)=a0*y(1);
+
+for i=2:length(delta)
+    z(i)=a0*y(i)+b1*z(i-1);
+end
+
+subplot(323);
+plot((1:100), z(1:100)); grid on;
+title('Second-Order IIR Low-Pass Filter Impulse Response');
+
+subplot(324);
+plot((0:511)/512, abs(H1(1:512))); grid on;
+title('Second-Order IIR Low-Pass Filter Frequency Response');
+
+t=linspace(0,1,100);
+x_noisy =sin(2*pi*20*t) + sin(2*pi*300*t);
+
+%Noisy
+x(1)=a0*x_noisy(1);
+
+for i=2:length(x_noisy)
+    x(i)=a0*x_noisy(i)+b1*x(i-1);
+end
+
+subplot(325);
+plot(1:length(x),x_noisy); grid on;
+title('Noisy signal');
+
+subplot(326);
+plot(1:length(x),x); grid on;
+title('After filterng');
+
+
+
+% Task 2: Band-Pass and Band-Reject Filters
+% Original Bandpass Filter Implementation
+%Using an IIR filter, you have to separate a speech signal from a pure sine signal. The frequencies to be isolated or rejected are respectively 1600 Hz and 5000 Hz. Use single-pole second order recursive filters. Design band-pass and band-reject filters.
+%2. Design 4th order filter by cascading two identical filters, that is, send the samples in the first filter, then take the output of the first filter and send it again to the same filter. Analyze the result and measure the frequency response. What do you conclude?
+%3. Compute the required filter coefficients using the cutoff frequency and bandwidth that you need.
+%4. Display the resulting filter characteristic -frequency response.
+%5. Apply the filter to your data.
+%6. Derive the Transfer Function H(z) from the difference equation for these types of filters.
+%7. Compute the impulse response of your filter and implement it using a straightforward algorithm on the DSP (convolution equation).
+clc;
+clear all; close all;
+fs = 24000; 
+fc1 = 1600; 
+fc2 = 5000; 
+f=(fc1+fc2)/2/fs;
+BW = (fc2-fc1)/fs;   
+R1 = 1 - 3*BW;
+K1 = (1 - 2*R1*cos(2*pi*f) + R1^2) / (2 - 2*cos(2*pi*f));
+a0 =1- K1;
+a1 = 2*(K1-R1)*cos(2*pi*f);
+a2 =R1^2-K1;
+b1 = 2*R1*cos(2*pi*f);
+b2=-R1^2;
+delta=[1,zeros(1,200)];
+h(1)= a0* delta(1);
+h(2)= a0* delta(2) + a1* delta(1) +b1*h(1);
+for i=3:length(delta)
+    h(i)=a0* delta(i)+a1*delta(i-1)+a2*delta(i-2)+b1*h(i-1)+b2*h(i-2);
+end
+H=fft(h);
+subplot(321);plot(1:100,h(1:100)); title('Impulse response of 2nd order passband IIR');grid on;
+subplot(322);plot(1:100,abs(H(1:100))); title('Frequency response of 2nd order passband IIR');grid on;
+%4th order pass-band IIR filter
+y(1)=a0*h(1);
+y(2)=a0*h(2) + a1*h(1)+ b1* y(1);
+for i=3:length(h)
+    y(i)=a0* h(i)+a1*h(i-1)+a2*h(i-2)+b1*y(i-1)+b2*y(i-2);
+end
+Y=fft(y);
+subplot(323);plot(1:100,y(1:100)); title('Impulse response of 4th order passband IIR');grid on;
+subplot(324);plot(1:100,abs(Y(1:100))); title('Frequency response of 4th order passband IIR');grid on;
+t=linspace(0,1,100);
+x_noisy =sin(2*pi*100*t) + sin(2*pi*2300*t);
+x_filtered = conv(x_noisy,y);
+subplot(325);plot(1:length(x_noisy),x_noisy); grid on;title('Noisy signal');
+subplot(326);plot(1:100,x_filtered(1:100)); grid on;title('After filterng');
+
+% Band Rejection Filter Implementation (New Figure)
+figure;
+% Parameters are the same as before
+fs = 24000;
+fc1 = 1600;
+fc2 = 5000;
+f = (fc1+fc2)/2/fs;
+BW = (fc2-fc1)/fs;
+
+% For band rejection (notch) filter, we need to modify the coefficients
+R1 = 1 - 3*BW;
+K1 = (1 - 2*R1*cos(2*pi*f) + R1^2) / (2 - 2*cos(2*pi*f));
+a0 = K1;                       % Changed for notch filter
+a1 = -2*K1*cos(2*pi*f);        % Changed for notch filter
+a2 = K1;                       % Changed for notch filter
+b1 = 2*R1*cos(2*pi*f);
+b2 = -R1^2;
+
+% Original signal for impulse response
+delta = [1, zeros(1, 200)];
+
+% 2nd order band rejection filter
+h_notch(1) = a0 * delta(1);
+h_notch(2) = a0 * delta(2) + a1 * delta(1) + b1 * h_notch(1);
+for i = 3:length(delta)
+    h_notch(i) = a0 * delta(i) + a1 * delta(i-1) + a2 * delta(i-2) + b1 * h_notch(i-1) + b2 * h_notch(i-2);
+end
+
+% Frequency domain analysis
+H_notch = fft(h_notch);
+
+% 4th order band rejection filter (cascading two 2nd order filters)
+y_notch(1) = a0 * h_notch(1);
+y_notch(2) = a0 * h_notch(2) + a1 * h_notch(1) + b1 * y_notch(1);
+for i = 3:length(h_notch)
+    y_notch(i) = a0 * h_notch(i) + a1 * h_notch(i-1) + a2 * h_notch(i-2) + b1 * y_notch(i-1) + b2 * y_notch(i-2);
+end
+
+% Frequency domain analysis for 4th order filter
+Y_notch = fft(y_notch);
+
+% Create test signal (same as before)
+t = linspace(0, 1, 100);
+x_noisy = sin(2*pi*100*t) + sin(2*pi*2300*t);
+x_filtered_notch = conv(x_noisy, y_notch);
+
+% Compute frequency responses for notch filtering
+X_filtered_notch = fft(x_filtered_notch(1:100));
+
+% Plot 2nd order band rejection filter
+subplot(321); plot(1:100, h_notch(1:100)); 
+title('Impulse response of 2nd order band rejection IIR'); grid on;
+ylabel('Amplitude'); xlabel('Sample');
+
+subplot(322); plot((0:99)/200*fs, abs(H_notch(1:100))); 
+title('Frequency response of 2nd order band rejection IIR'); grid on;
+ylabel('Magnitude'); xlabel('Frequency (Hz)');
+
+% Plot 4th order band rejection filter
+subplot(323); plot(1:100, y_notch(1:100)); 
+title('Impulse response of 4th order band rejection IIR'); grid on;
+ylabel('Amplitude'); xlabel('Sample');
+
+subplot(324); plot((0:99)/200*fs, abs(Y_notch(1:100))); 
+title('Frequency response of 4th order band rejection IIR'); grid on;
+ylabel('Magnitude'); xlabel('Frequency (Hz)');
+
+
+x_filtered_notch = filter([a0 a1 a2], [1 -b1 -b2], x_noisy);
+
+% Plot the time domain signals
+subplot(325); 
+t = (0:length(x_noisy)-1)/fs; 
+plot(t, x_noisy); 
+grid on; 
+title('Noisy signal (time domain)'); 
+ylabel('Amplitude'); 
+xlabel('Time (s)');
+
+subplot(326); 
+plot(t, x_filtered_notch);  
+grid on; 
+title('After band rejection filtering (time domain)');
+ylabel('Amplitude'); 
+xlabel('Time (s)');
+
+% Band Rejection Filter Implementation
+clc;
+clear all;
+close all;
+
+% Sampling frequency
+fs = 24000;
+fc1 = 1600;
+fc2 = 5000;
+f = (fc1+fc2)/2/fs;
+BW = (fc2-fc1)/fs;
+
+% Band-reject filter coefficients
+R1 = 1 - 3*BW;
+K1 = (1 - 2*R1*cos(2*pi*f) + R1^2) / (2 - 2*cos(2*pi*f));
+a0 = K1;
+a1 = -2*K1*cos(2*pi*f);
+a2 = K1;
+b1 = 2*R1*cos(2*pi*f);
+b2 = -R1^2;
+
+% Impulse response
+delta = [1, zeros(1, 200)];
+h_notch(1) = a0 * delta(1);
+h_notch(2) = a0 * delta(2) + a1 * delta(1) + b1 * h_notch(1);
+for i = 3:length(delta)
+    h_notch(i) = a0 * delta(i) + a1 * delta(i-1) + a2 * delta(i-2) + b1 * h_notch(i-1) + b2 * h_notch(i-2);
+end
+
+% Frequency domain analysis
+H_notch = fft(h_notch);
+
+% 4th order band-reject filter (cascading two 2nd order filters)
+y_notch(1) = a0 * h_notch(1);
+y_notch(2) = a0 * h_notch(2) + a1 * h_notch(1) + b1 * y_notch(1);
+for i = 3:length(h_notch)
+    y_notch(i) = a0 * h_notch(i) + a1 * h_notch(i-1) + a2 * h_notch(i-2) + b1 * y_notch(i-1) + b2 * y_notch(i-2);
+end
+
+% Frequency domain analysis for 4th order filter
+Y_notch = fft(y_notch);
+
+% Test signal
+t = linspace(0, 1, 100);
+x_noisy = sin(2*pi*100*t) + sin(2*pi*2300*t);
+x_filtered_notch = conv(x_noisy, y_notch);
+
+% Compute frequency responses for notch filtering
+X_filtered_notch = fft(x_filtered_notch(1:100));
+
+% Plot 2nd order band-reject filter
+figure;
+subplot(321);
+plot(1:100, h_notch(1:100));
+title('Impulse Response of 2nd Order Band-Reject IIR');
+grid on;
+ylabel('Amplitude'); xlabel('Sample');
+
+subplot(322);
+plot((0:99)/200*fs, abs(H_notch(1:100)));
+title('Frequency Response of 2nd Order Band-Reject IIR');
+grid on;
+ylabel('Magnitude'); xlabel('Frequency (Hz)');
+
+% Plot 4th order band-reject filter
+subplot(323);
+plot(1:100, y_notch(1:100));
+title('Impulse Response of 4th Order Band-Reject IIR');
+grid on;
+ylabel('Amplitude'); xlabel('Sample');
+
+subplot(324);
+plot((0:99)/200*fs, abs(Y_notch(1:100)));
+title('Frequency Response of 4th Order Band-Reject IIR');
+grid on;
+ylabel('Magnitude'); xlabel('Frequency (Hz)');
+
+% Apply filter to noisy signal
+x_filtered_notch = filter([a0 a1 a2], [1 -b1 -b2], x_noisy);
+
+% Plot the time-domain signals
+subplot(325);
+t = (0:length(x_noisy)-1)/fs;
+plot(t, x_noisy);
+grid on;
+title('Noisy Signal (Time Domain)');
+ylabel('Amplitude'); xlabel('Time (s)');
+
+subplot(326);
+plot(t, x_filtered_notch);
+grid on;
+title('After Band-Rejection Filtering (Time Domain)');
+ylabel('Amplitude'); xlabel('Time (s)');
+
+
+%%7
+%task1
+%Design Chebyshev 1 Type filter using Matlab build-in function cheby1 with specifications given below. Define and plot frequency response (non-dB and dB plots) and Impulse response of the filter. Apply designed filter to some input signal with different frequencies. Make some conclusions.
+clc; clear; close all;
+
+Wp = [0.2 0.4];
+
+[b, a] = cheby1(2, 0.3, Wp, "bandpass");
+
+%Impulse response
+[h, t]=impz(b, a, 1024);
+
+%Frequency response
+[G, f]=freqz(b, a, 512);    
+
+figure;
+subplot(311); plot(t, h); title("Impulse response of the filter"); grid on;
+subplot(312); plot(f, abs(G)); title("Frequency response of the filter (non-dB)"); grid on;
+subplot(313); plot((0 : 511) / 1024, abs(10*log10(G(1 : 512)))); title("Frequency response of the filter (dB)"); grid on;
+
+%Applying filter to an input signal
+fs = 1000;
+t2 = 0:1/fs:1;
+f1 = 15; f2 =460; f3 = 220; f4 = 250;
+x = sin(2*pi*f1*t2) + sin(2*pi*f2*t2) + sin(2*pi*f3*t2) + 2*sin(2*pi*f4*t2);
+
+y  = filter(b, a, x);
+
+figure;
+subplot(221); plot(t2, x); title("Input signal"); grid on;
+subplot(222); plot(t2,y); title("Filtered input signal"); grid on;
+
+X_freq = fft(x, 512);
+Y_freq = fft(y, 512);
+
+subplot(223); plot((1: 512), abs(X_freq(1 : 512))); title("Spectrum before filtering"); grid on;
+subplot(224); plot((1: 512), abs(Y_freq(1 : 512))); title("Spectrum after filtering"); grid on;
+
+%task 2
+%Design Chebyshev 1 Type low-pass filters using Chebyshev polynomials with specifications given below. Define and plot frequency response (non-dB and dB plots) and Impulse response of the filters. Implement Chebyshev 1 Type low-pass filter for filtering noisy sinusoidal signal (sine wave+ high frequencies). Plot signal before and after filter. Compare results for both filters. Make some conclusions
+clc;clear;close all;
+n1=4;
+n2=20;
+r=0.5;
+fc=0.25;
+f=(0:511)/1024;
+Fs=0:0.01:1;
+x=0:0.01:1;
+w=Fs/fc;
+T4=chebyshevT(n1, x);
+T20=chebyshevT(n2, x);
+figure(1);
+plot(x,T4,'g', x, T20, 'r'); grid on;
+legend('T(4)', 'T(20)');
+T4m=chebyshevT(n1,w);
+T20m=chebyshevT(n2,w);
+G4=1./sqrt(1+r.^2.*T4m.^2);
+G20=1./sqrt(1+r.^2.*T20m.^2);
+figure(2);
+plot(w, G4, 'g', w, G20, 'r'); grid on; title('Frequency response (non dB)');
+legend('T(4)', 'T(20)');
+figure(3);
+plot(w, 10*log10(G4), 'g', w, 10*log10(G20), 'r'); grid on; title('Frequency response (dB)');
+legend('T(4)', 'T(20)');
+%noisy signal
+t=0:0.001:1;
+s=sin(2*pi*25*t)+0.7*sin(2*pi*220*t);
+figure(4);
+subplot(211);plot(s(1:100)); grid on; title('Noisy signal');
+s_out4=conv(T4,s);
+s_out20=conv(T20,s);
+subplot(212); plot(t(1:100), s_out4(1:100), 'b', t(1:100), s_out20(1:100), 'r'); grid on;
+
+
+%task3
+%Design Chebyshev 1 Type high-pass filter using Table (see data below) with specifications given below. Define and plot frequency response (non-dB and dB plots) and Impulse response of the filter. Implement Chebyshev 1 Type high-pass filter for selecting noise from sinusoids (sine wave+ high frequencies). Plot signal before and after filter. Make some conclusions.
+clc;clear;close all;
+n=6; r=0.5; fc=0.3;
+a0=4.18e-3;
+a1=-2.51e-02;
+a2=6.28e-02;
+a3=-8.37e-02;
+a4=6.28e-02;
+a5=-2.51e-02;
+a6=4.18e-03;
+b1=-2.31e+00;
+b2=-3.29;
+b3=-2.9;
+b4=-1.69;
+b5=-6.02e-01;
+b6=-1.03e-01;
+a=[a0,a1,a2,a3,a4,a5,a6];
+b=[b1, b2, b3, b4, b5, b6];
+fvtool(a,b);
+t=0:0.001:10;
+f1=220; f2=150; f3=420;
+s=sin(2*pi*f1*t)+0.7*sin(2*pi*f2*t)+0.3*sin(2*pi*f3*t); %noisy signal
+s_out=filter(a,b,s); %after filtering
+S=fft(s, 512);
+S_out=fft(s_out,512);
+subplot(211); plot(t(1:100),s(1:100),'b',t(1:100),s_out(1:100),'r'); grid on; legend('s(t)', 's_out(t)');
+
+subplot(212); plot(f(1:100),abs(S(1:100)),'b',f(1:100),abs(S_out(1:100)),'r'); grid on; legend('S(t)', 'S_out(t)');
+
+
+
